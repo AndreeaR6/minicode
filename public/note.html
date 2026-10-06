@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Note JSON, OOP si git</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: cuprins lipit in stanga pe desktop, sectiuni scurte in dreapta; blocurile de cod sunt bleumarin ca bara din CV. */
+:root{
+  color-scheme:light;
+  --bg:#f3f6fb; --surface:#ffffff; --ink:#1c2530; --muted:#566274; --accent:#0a66c2; --line:#d3dce8;
+  --code-bg:#17304f; --code-ink:#e6eef9; --code-dim:#9db6d4; --out-bg:#eaf2fc; --bad:#b3261e; --ok:#177245;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1520; --surface:#141d2b; --ink:#e4ebf4; --muted:#9aa8bb; --accent:#5ea3ea; --line:#2a3648;
+  --code-bg:#0a1018; --code-ink:#dbe6f5; --code-dim:#7f93ad; --out-bg:#1a2638; --bad:#ff8a80; --ok:#6fcf97; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1520; --surface:#141d2b; --ink:#e4ebf4; --muted:#9aa8bb; --accent:#5ea3ea; --line:#2a3648;
+  --code-bg:#0a1018; --code-ink:#dbe6f5; --code-dim:#7f93ad; --out-bg:#1a2638; --bad:#ff8a80; --ok:#6fcf97; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;padding-inline:16px;padding-block:28px 64px}
+.wrap{max-width:1020px;margin-inline:auto;display:grid;grid-template-columns:200px minmax(0,1fr);gap:40px}
+header.top{grid-column:1/-1}
+h1{margin:0 0 6px;font-size:clamp(28px,5vw,40px);line-height:1.1;font-weight:800;text-wrap:balance}
+.lead{margin:0;color:var(--muted);font-size:18px;max-width:60ch}
+
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 20px);align-self:start;display:flex;flex-direction:column;gap:2px;font-size:14.5px}
+nav.toc a{color:var(--muted);text-decoration:none;padding:5px 0 5px 12px;border-left:2px solid var(--line)}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--accent);border-left-color:var(--accent);outline:none}
+
+main{display:flex;flex-direction:column;gap:44px;min-width:0}
+section{min-width:0;scroll-margin-top:20px}
+h2{margin:0 0 10px;font-size:24px;line-height:1.2;font-weight:800;color:var(--ink);text-wrap:balance}
+p{margin:0 0 12px;max-width:68ch}
+ul.plain,ol.steps{margin:0 0 14px;padding-left:22px;max-width:68ch}
+li{margin:0 0 5px}
+li::marker{color:var(--accent);font-weight:700}
+.school{margin:14px 0;padding:10px 0;border-block:1px dashed var(--line);max-width:68ch}
+.school b{color:var(--accent);font-size:12.5px;letter-spacing:.07em;text-transform:uppercase;margin-right:8px}
+.src{margin:12px 0 0;font-size:13.5px;color:var(--muted)}
+.src a{color:var(--accent)}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,summary:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.code{position:relative;margin:12px 0}
+.code pre{margin:0;background:var(--code-bg);color:var(--code-ink);border-radius:6px 6px 0 0;padding:14px 16px;overflow-x:auto;font:13.5px/1.55 var(--f-mono);tab-size:2}
+.code.solo pre{border-radius:6px}
+.bar{display:flex;gap:8px;align-items:center;justify-content:space-between;background:var(--code-bg);border-top:1px solid rgba(255,255,255,.12);padding:6px 10px;border-radius:0 0 6px 6px}
+.bar span{font:12px var(--f-mono);color:var(--code-dim)}
+.btns{display:flex;gap:8px}
+button{font:600 13px var(--f-body);border:0;border-radius:5px;padding:5px 11px;cursor:pointer;background:rgba(255,255,255,.14);color:var(--code-ink)}
+button.run{background:var(--accent);color:#fff}
+button:hover{filter:brightness(1.12)}
+.out{margin:0;background:var(--out-bg);border:1px solid var(--line);border-top:0;border-radius:0 0 6px 6px;padding:10px 14px;font:13.5px/1.5 var(--f-mono);white-space:pre-wrap;overflow-wrap:anywhere}
+.out[hidden]{display:none}
+.out.bad{color:var(--bad)}
+
+.try{margin:14px 0;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:14px;max-width:68ch}
+.try label{display:block;font-weight:700;margin-bottom:6px}
+.try textarea{width:100%;min-height:96px;font:13.5px/1.5 var(--f-mono);padding:10px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);resize:vertical}
+.try .row{display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.try button{background:var(--accent);color:#fff;padding:7px 14px}
+.try .res{margin-top:8px;font:13.5px/1.5 var(--f-mono);min-height:1.5em;overflow-wrap:anywhere}
+.res.ok{color:var(--ok)} .res.bad{color:var(--bad)}
+
+.tbl{overflow-x:auto;margin:12px 0;max-width:68ch}
+table{border-collapse:collapse;width:100%;min-width:420px;font-size:15px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+
+details{border-bottom:1px solid var(--line);padding:10px 0;max-width:68ch}
+summary{cursor:pointer;font-weight:700}
+details p{margin:8px 0 0;color:var(--muted)}
+
+@media (max-width:860px){
+  .wrap{grid-template-columns:minmax(0,1fr);gap:22px}
+  nav.toc{position:static;flex-direction:row;flex-wrap:wrap;gap:6px 14px}
+  nav.toc a{border-left:0;padding:2px 0;text-decoration:underline}
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <h1>Note JSON, OOP si git</h1>
+  <p class="lead">Am strans aici ce am lucrat azi in editorul de CV: JSON, salvarea datelor, OOP si git.</p>
+</header>
+
+<nav class="toc" aria-label="Cuprins">
+  <a href="#pierd">Datele din pagina se pierd</a>
+  <a href="#json">JSON</a>
+  <a href="#sursa">JSON-ul e sursa, PDF-ul e rezultatul</a>
+  <a href="#editor">Salvare si incarcare</a>
+  <a href="#sectiuni">Datele pe sectiuni</a>
+  <a href="#server">Fara server</a>
+  <a href="#oop">OOP</a>
+  <a href="#git">Git</a>
+  <a href="#test">Verifica-te</a>
+  <a href="#surse">Surse</a>
+</nav>
+
+<main>
+
+<section id="pierd">
+  <h2>Datele din pagina se pierd</h2>
+  <p>Ce scrii intr-o pagina web sta in memoria paginii. Inchizi pagina si dispare.</p>
+  <div class="school"><b>Ca la scoala</b>Scrii pe ciorna si arunci foaia. Ca sa pastrezi ceva, il copiezi pe curat.</div>
+  <p>Salvat inseamna scris in afara paginii. Sunt trei variante:</p>
+  <ul class="plain">
+    <li><b>localStorage</b>: in browser, doar pe calculatorul si browserul pe care l-ai folosit.</li>
+    <li><b>fisier</b>: de exemplu un JSON, pe care il duci unde vrei.</li>
+    <li><b>server cu baza de date</b>: PHP si SQL.</li>
+  </ul>
+  <p>localStorage tine doar siruri de text si ramane si dupa ce inchizi browserul. Intr-o fereastra privata se comporta ca sessionStorage, adica se sterge la inchidere.</p>
+  <div class="code">
+<pre><code>localStorage.setItem("cv", JSON.stringify({ name: "Maria" }));
+const saved = JSON.parse(localStorage.getItem("cv"));
+console.log(saved.name);</code></pre>
+    <div class="bar"><span>JavaScript</span><div class="btns"><button type="button" data-copy>Copiaza</button><button type="button" class="run" data-run="storage">Ruleaza</button></div></div>
+    <pre class="out" hidden></pre>
+  </div>
+  <p class="src">Sursa: <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API" target="_blank" rel="noopener">MDN, Web Storage API</a></p>
+</section>
+
+<section id="json">
+  <h2>JSON</h2>
+  <p>JSON e text care descrie date. Poate avea obiecte <code>{}</code>, liste <code>[]</code>, texte, numere, <code>true</code>, <code>false</code> si <code>null</code>.</p>
+  <p>Regulile: cheile sunt in ghilimele duble, nu are virgula la sfarsit, nu are comentarii si nu are <code>undefined</code>.</p>
+  <div class="school"><b>Ca la scoala</b>O fisa de elev completata: aceleasi campuri, scrise la fel pentru oricine o citeste.</div>
+  <ol class="steps">
+    <li>Obiectul din cod devine text cu <code>JSON.stringify</code>.</li>
+    <li>Textul devine obiect la loc cu <code>JSON.parse</code>.</li>
+    <li>Daca textul e stricat, <code>JSON.parse</code> da <code>SyntaxError</code>.</li>
+  </ol>
+  <div class="code">
+<pre><code>const cv = { name: "Maria", skills: ["PHP", "OOP"], years: 3 };
+const text = JSON.stringify(cv, null, 2);
+console.log(text);
+const back = JSON.parse(text);
+console.log(back.skills[1]);</code></pre>
+    <div class="bar"><span>JavaScript</span><div class="btns"><button type="button" data-copy>Copiaza</button><button type="button" class="run" data-run="roundtrip">Ruleaza</button></div></div>
+    <pre class="out" hidden></pre>
+  </div>
+  <p><code>JSON.stringify</code> sare peste <code>undefined</code> si functii, iar un <code>Date</code> devine text:</p>
+  <div class="code">
+<pre><code>const x = { a: undefined, b: () => 1, c: new Date(0), d: "ok" };
+console.log(JSON.stringify(x));</code></pre>
+    <div class="bar"><span>JavaScript</span><div class="btns"><button type="button" data-copy>Copiaza</button><button type="button" class="run" data-run="lost">Ruleaza</button></div></div>
+    <pre class="out" hidden></pre>
+  </div>
+  <div class="try">
+    <label for="tryText">Incearca JSON.parse</label>
+    <textarea id="tryText" spellcheck="false">{
+  "name": "Maria",
+  "skills": ["PHP", "OOP"]
+}</textarea>
+    <div class="row"><button type="button" id="tryBtn">Citeste</button><span>Sterge o ghilimea sau pune o virgula la sfarsit si apasa din nou.</span></div>
+    <div class="res" id="tryRes" aria-live="polite"></div>
+  </div>
+  <p class="src">Sursa: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON" target="_blank" rel="noopener">MDN, JSON</a></p>
+</section>
+
+<section id="sursa">
+  <h2>JSON-ul e sursa, PDF-ul e rezultatul</h2>
+  <p>Editorul are doua iesiri. PDF-ul e CV-ul pe care il citeste cineva. JSON-ul e ce editezi: din el refaci PDF-ul oricand.</p>
+  <div class="school"><b>Ca la scoala</b>Ciorna si lucrarea predata. Modifici pe ciorna si predai din nou curat.</div>
+  <p>De aceea nu are rost importul din PDF. PDF-ul tine pozitia fiecarei litere pe pagina. Codul ar trebui sa ghiceasca ce e titlu, ce e firma, ce e perioada. Merge pe un format si se rupe pe altul. In JSON fiecare camp are nume.</p>
+  <div class="tbl"><table>
+    <thead><tr><th></th><th>PDF</th><th>JSON</th></tr></thead>
+    <tbody>
+      <tr><td>Ce pastreaza</td><td>pozitii pe pagina</td><td>campuri cu nume</td></tr>
+      <tr><td>Cum il citesti</td><td>ghicit din text</td><td>direct, dupa nume</td></tr>
+      <tr><td>La alt design</td><td>se rupe</td><td>nu conteaza</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="editor">
+  <h2>Salvare si incarcare</h2>
+  <ol class="steps">
+    <li>Editezi in formular.</li>
+    <li>'Salveaza ca JSON' scrie datele ca text: mai intai <code>format</code> si <code>version</code>, apoi sectiunile.</li>
+    <li>Pastrezi fisierul.</li>
+    <li>'Incarca JSON' citeste textul cu <code>JSON.parse</code>.</li>
+    <li>Editorul verifica <code>format</code> si <code>version</code>. Daca nu se potrivesc, refuza si lasa datele cum erau.</li>
+    <li>Pune datele in formular si refaci previzualizarea.</li>
+  </ol>
+  <p>Cand schimbi structura fisierului, urci <code>version</code>. Un fisier vechi se recunoaste dupa numar.</p>
+  <div class="code">
+<pre><code>function load(text) {
+  const o = JSON.parse(text);
+  if (o.format !== "cv-editor") throw new Error("Nu e un JSON de CV");
+  if (o.version !== 1) throw new Error("Versiune necunoscuta: " + o.version);
+  return o;
+}</code></pre>
+    <div class="bar"><span>JavaScript, versiune scurta din editor</span><div class="btns"><button type="button" data-copy>Copiaza</button><button type="button" class="run" data-run="load">Ruleaza cu 4 texte</button></div></div>
+    <pre class="out" hidden></pre>
+  </div>
+</section>
+
+<section id="sectiuni">
+  <h2>Datele pe sectiuni</h2>
+  <p>JSON-ul are un grup pentru fiecare parte din CV: <code>basics</code>, <code>profile</code>, <code>experience</code>, <code>projects</code>, <code>education</code>, <code>sidebar</code>. Poza e la sfarsit.</p>
+  <div class="code solo">
+<pre><code>{
+  "format": "cv-editor",
+  "version": 1,
+  "basics": { "name": "Maria Exemplu", "headline": "Application Developer" },
+  "experience": [
+    {
+      "period": "2014 - IN CURS",
+      "title": "Application Developer",
+      "groups": [
+        { "heading": "Integrari", "items": [ { "bullet": "driver Laravel pentru SMTP" } ] }
+      ]
+    }
+  ],
+  "education": [ { "period": "2014/10", "degree": "Master", "school": "...", "details": "" } ],
+  "sidebar": { "topSkills": ["Dezvoltare web"], "languages": ["Engleza - B2"] },
+  "photo": ""
+}</code></pre>
+  </div>
+  <p>Designul (culori, fonturi, pozitii) e in codul editorului, nu in JSON. Daca vrei si designul salvat, se adauga o sectiune <code>design</code> cu culorile. Acum nu exista.</p>
+</section>
+
+<section id="server">
+  <h2>Fara server</h2>
+  <p>Editorul ruleaza doar in browser. JavaScript citeste si scrie datele, deci nu e nevoie de PHP si SQL.</p>
+  <p>Serverul cu baza de date merita cand mai multi oameni scriu aceleasi date sau cand datele trebuie sa fie la indemana pe alt calculator. Pentru un editor personal e prea mult.</p>
+</section>
+
+<section id="oop">
+  <h2>OOP</h2>
+  <p>OOP inseamna programare orientata pe obiecte: datele stau impreuna cu codul care le modifica, in obiecte.</p>
+  <div class="school"><b>Ca la scoala</b>Clasa e formularul gol. Obiectul e formularul completat de un elev.</div>
+  <ul class="plain">
+    <li><b>clasa</b>: schita dupa care faci obiecte.</li>
+    <li><b>obiect</b>: un exemplar facut dupa schita, cu datele lui.</li>
+    <li><b>incapsulare</b>: datele si metodele care le schimba stau in acelasi loc.</li>
+    <li><b>mostenire</b>: o clasa preia ce are alta clasa.</li>
+    <li><b>polimorfism</b>: aceeasi metoda se comporta diferit, dupa tipul obiectului.</li>
+    <li><b>abstractizare</b>: scoti la vedere doar ce trebuie folosit.</li>
+  </ul>
+  <div class="code">
+<pre><code>class Cv {
+  constructor(name) { this.name = name; this.skills = []; }
+  addSkill(s) { this.skills.push(s); return this; }
+  toJSON() { return { name: this.name, skills: this.skills }; }
+}
+const cv = new Cv("Maria").addSkill("PHP").addSkill("OOP");
+console.log(JSON.stringify(cv));</code></pre>
+    <div class="bar"><span>JavaScript</span><div class="btns"><button type="button" data-copy>Copiaza</button><button type="button" class="run" data-run="oop">Ruleaza</button></div></div>
+    <pre class="out" hidden></pre>
+  </div>
+  <p>Acelasi lucru in PHP 8 (de rulat pe server sau cu <code>php</code> in terminal):</p>
+  <div class="code">
+<pre><code>&lt;?php
+class Cv {
+    private array $skills = [];
+
+    public function __construct(private string $name) {}
+
+    public function addSkill(string $s): static {
+        $this-&gt;skills[] = $s;
+        return $this;
+    }
+}
+
+$cv = (new Cv("Maria"))-&gt;addSkill("PHP")-&gt;addSkill("OOP");</code></pre>
+    <div class="bar"><span>PHP 8.0 sau mai nou</span><div class="btns"><button type="button" data-copy>Copiaza</button></div></div>
+  </div>
+  <p class="src">Surse: <a href="https://developer.mozilla.org/en-US/docs/Glossary/OOP" target="_blank" rel="noopener">MDN, OOP</a>, <a href="https://www.php.net/manual/en/language.oop5.decon.php" target="_blank" rel="noopener">PHP, constructori</a></p>
+</section>
+
+<section id="git">
+  <h2>Git</h2>
+  <p>Git tine istoricul fisierelor unui proiect. Fiecare commit e o poza a intregului proiect la un moment dat.</p>
+  <div class="school"><b>Ca la scoala</b>Un caiet cu data pe fiecare pagina. Nu stergi nimic, adaugi pagini noi si te poti intoarce la oricare.</div>
+  <p>Un fisier poate fi in trei stari: modificat, pregatit pentru commit (staged) si salvat in commit. Aproape totul se face pe calculatorul tau, fara internet, pana la <code>push</code>.</p>
+  <div class="code">
+<pre><code>git clone &lt;adresa-repo&gt;
+git add index.html README.md
+git commit -m "Add CV editor"
+git push origin main</code></pre>
+    <div class="bar"><span>terminal</span><div class="btns"><button type="button" data-copy>Copiaza</button></div></div>
+  </div>
+  <ul class="plain">
+    <li><code>clone</code> descarca repo-ul si il leaga de <code>origin</code>.</li>
+    <li><code>add</code> pune fisierele in staging.</li>
+    <li><code>commit</code> salveaza local, cu un mesaj scurt.</li>
+    <li><code>push</code> trimite commit-urile pe GitHub, daca ai drept de scriere si nimeni n-a trimis intre timp.</li>
+  </ul>
+  <p>CV-ul tau real si parolele nu intra in repo.</p>
+  <p class="src">Surse: <a href="https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F" target="_blank" rel="noopener">Pro Git, What is Git</a>, <a href="https://git-scm.com/book/en/v2/Git-Basics-Working-with-Remotes" target="_blank" rel="noopener">Pro Git, Remotes</a></p>
+</section>
+
+<section id="test">
+  <h2>Verifica-te</h2>
+  <details><summary>Ce se intampla cu datele din pagina cand o inchizi?</summary><p>Se pierd, daca nu le-ai salvat in afara paginii.</p></details>
+  <details><summary>Ce face JSON.parse pe un text stricat?</summary><p>Da SyntaxError.</p></details>
+  <details><summary>Ce rezulta din JSON.stringify({ a: undefined, b: () =&gt; 1 })?</summary><p>{}. Ambele proprietati sunt sarite.</p></details>
+  <details><summary>De ce are fisierul 'format' si 'version'?</summary><p>Ca editorul sa refuze un fisier strain sau de alta versiune, fara sa strice datele din formular.</p></details>
+  <details><summary>Care e diferenta dintre clasa si obiect?</summary><p>Clasa e schita. Obiectul e un exemplar facut dupa ea, cu datele lui.</p></details>
+  <details><summary>Ce face git push?</summary><p>Trimite commit-urile locale pe remote, de exemplu pe GitHub.</p></details>
+</section>
+
+<section id="surse">
+  <h2>Surse</h2>
+  <ul class="plain">
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON" target="_blank" rel="noopener">MDN, JSON</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API" target="_blank" rel="noopener">MDN, Web Storage API</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Glossary/OOP" target="_blank" rel="noopener">MDN, OOP</a></li>
+    <li><a href="https://www.php.net/manual/en/language.oop5.decon.php" target="_blank" rel="noopener">PHP, constructori si constructor promotion</a></li>
+    <li><a href="https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F" target="_blank" rel="noopener">Pro Git, What is Git</a></li>
+    <li><a href="https://git-scm.com/book/en/v2/Git-Basics-Working-with-Remotes" target="_blank" rel="noopener">Pro Git, Working with Remotes</a></li>
+  </ul>
+</section>
+
+</main>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var RUN = {
+    storage: function () {
+      try {
+        localStorage.setItem('cv', JSON.stringify({ name: 'Maria' }));
+        var saved = JSON.parse(localStorage.getItem('cv'));
+        return saved.name;
+      } catch (e) { return { bad: true, text: 'Browserul blocheaza localStorage in pagina asta.' }; }
+    },
+    roundtrip: function () {
+      var cv = { name: 'Maria', skills: ['PHP', 'OOP'], years: 3 };
+      var text = JSON.stringify(cv, null, 2);
+      var back = JSON.parse(text);
+      return text + '\n' + back.skills[1];
+    },
+    lost: function () {
+      var x = { a: undefined, b: function () { return 1; }, c: new Date(0), d: 'ok' };
+      return JSON.stringify(x);
+    },
+    load: function () {
+      function load(text) {
+        var o = JSON.parse(text);
+        if (o.format !== 'cv-editor') throw new Error('Nu e un JSON de CV');
+        if (o.version !== 1) throw new Error('Versiune necunoscuta: ' + o.version);
+        return o;
+      }
+      var inputs = ['{"format":"cv-editor","version":1}', '{"format":"altceva","version":1}', '{"format":"cv-editor","version":2}', '{nu e json'];
+      return inputs.map(function (t) {
+        try { load(t); return t + '\n  -> ok'; }
+        catch (e) { return t + '\n  -> ' + e.name + ': ' + e.message; }
+      }).join('\n');
+    },
+    oop: function () {
+      function Cv(name) { this.name = name; this.skills = []; }
+      Cv.prototype.addSkill = function (s) { this.skills.push(s); return this; };
+      Cv.prototype.toJSON = function () { return { name: this.name, skills: this.skills }; };
+      var cv = new Cv('Maria').addSkill('PHP').addSkill('OOP');
+      return JSON.stringify(cv);
+    }
+  };
+
+  function copyText(text, btn) {
+    function done(ok) {
+      var old = btn.textContent; btn.textContent = ok ? 'Copiat' : 'Selecteaza si copiaza';
+      setTimeout(function () { btn.textContent = old; }, 1400);
+    }
+    try {
+      navigator.clipboard.writeText(text).then(function () { done(true); }, function () { selectCode(btn); done(false); });
+    } catch (e) { selectCode(btn); done(false); }
+  }
+  function selectCode(btn) {
+    var pre = btn.closest('.code').querySelector('pre code');
+    var r = document.createRange(); r.selectNodeContents(pre);
+    var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  }
+
+  document.addEventListener('click', function (ev) {
+    var t = ev.target;
+    if (t.matches('[data-copy]')) {
+      copyText(t.closest('.code').querySelector('pre code').textContent, t);
+    }
+    if (t.matches('[data-run]')) {
+      var out = t.closest('.code').querySelector('.out');
+      var res = RUN[t.getAttribute('data-run')]();
+      out.hidden = false;
+      if (res && res.bad) { out.className = 'out bad'; out.textContent = res.text; }
+      else { out.className = 'out'; out.textContent = res; }
+    }
+    if (t.id === 'tryBtn') {
+      var box = document.getElementById('tryRes'), src = document.getElementById('tryText').value;
+      try {
+        var o = JSON.parse(src);
+        box.className = 'res ok';
+        box.textContent = 'Citit. ' + (o && typeof o === 'object' && !Array.isArray(o) ? 'Chei: ' + Object.keys(o).join(', ') : 'Valoare: ' + JSON.stringify(o));
+      } catch (e) {
+        box.className = 'res bad'; box.textContent = e.name + ': ' + e.message;
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>
