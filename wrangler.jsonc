@@ -5,6 +5,9 @@
   "workers_dev": true,
   "preview_urls": true,
   "keep_vars": true,
+  "kv_namespaces": [
+    { "binding": "CLICKS", "id": "c8324ec16c35452caaefc5c5a3777df8" }
+  ],
   "assets": {
     "directory": "./public"
   }

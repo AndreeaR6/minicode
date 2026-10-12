@@ -13,8 +13,50 @@ function b64ToBytes(b64) {
 }
 __name(b64ToBytes, "b64ToBytes");
 __name2(b64ToBytes, "b64ToBytes");
+var CLICK_SITE = "https://salon-dogmery-pet.github.io/SalonDogMeryPet/";
+var CLICK_BOTS = /bot|crawler|spider|facebookexternalhit|whatsapp|slack|telegram|preview|curl|wget/i;
+function clickPage(rows, days) {
+  const esc = (t) => String(t).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
+  const tr = (a, b) => "<tr><td>" + esc(a) + "</td><td style='text-align:right'>" + esc(b) + "</td></tr>";
+  const bySrc = Object.keys(rows).sort((a, b) => rows[b] - rows[a]).map((k) => tr(k, rows[k])).join("");
+  const byDay = Object.keys(days).sort().reverse().map((k) => tr(k, days[k])).join("");
+  return "<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><title>Click-uri salon</title><style>body{font:16px system-ui;max-width:520px;margin:24px auto;padding:0 16px}table{width:100%;border-collapse:collapse;margin:8px 0 24px}td,th{padding:6px 4px;border-bottom:1px solid #ccc;text-align:left}</style><h1>Click-uri salon</h1><h2>Pe sursa</h2><table>" + (bySrc || "<tr><td>Niciun click inca</td></tr>") + "</table><h2>Pe zi</h2><table>" + (byDay || "<tr><td>-</td></tr>") + "</table>";
+}
 var worker_default = {
-  async fetch(request) {
+  async fetch(request, env) {
+    const reqUrl = new URL(request.url);
+    if (reqUrl.pathname.startsWith("/s/")) {
+      const src = reqUrl.pathname.slice(3).toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 40);
+      if (src) {
+        const ua = request.headers.get("user-agent") || "";
+        if (env.CLICKS && !CLICK_BOTS.test(ua)) {
+          try {
+            const key = "c:" + src + ":" + new Date().toISOString().slice(0, 10);
+            const n = parseInt((await env.CLICKS.get(key)) || "0", 10) || 0;
+            await env.CLICKS.put(key, String(n + 1));
+          } catch (e) {}
+        }
+        return Response.redirect(CLICK_SITE + "?utm_source=" + src + "&utm_medium=redirect", 302);
+      }
+    }
+    if (reqUrl.pathname === "/stats") {
+      if (!env.STATS_KEY || reqUrl.searchParams.get("k") !== env.STATS_KEY || !env.CLICKS) {
+        return new Response("Not found", { status: 404 });
+      }
+      const rows = {}, days = {};
+      let cursor;
+      do {
+        const r = await env.CLICKS.list({ prefix: "c:", cursor });
+        for (const k of r.keys) {
+          const v = parseInt((await env.CLICKS.get(k.name)) || "0", 10) || 0;
+          const parts = k.name.split(":");
+          rows[parts[1]] = (rows[parts[1]] || 0) + v;
+          days[parts[2]] = (days[parts[2]] || 0) + v;
+        }
+        cursor = r.list_complete ? undefined : r.cursor;
+      } while (cursor);
+      return new Response(clickPage(rows, days), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
+    }
     const bytes = b64ToBytes(PAYLOAD_B64);
     const ds = new DecompressionStream("gzip");
     const stream = new Response(bytes).body.pipeThrough(ds);
