@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>:root{color-scheme:light}body{margin:0}[hidden]{display:none!important}</style>
+<title>Preferinte newsletter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: o singura carte centrata, lista cu scroll intern si bara de salvare mereu vizibila. Bifat = ramai in segment. */
+:root {
+  --bg: #E9EFEB;
+  --surface: #FFFFFF;
+  --surface-2: #F3F7F5;
+  --ink: #10231D;
+  --ink-2: #4A5F57;
+  --line: #D5DFD9;
+  --line-strong: #8FA499;
+  --accent: #0B6B52;
+  --on-accent: #FFFFFF;
+  --accent-soft: #D9EFE5;
+  --amber: #7A4F00;
+  --amber-soft: #FFEFCC;
+  --focus: #2B6CE4;
+  --shadow: rgba(16, 35, 29, 0.28);
+  --font-display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B1411;
+    --surface: #121E1A;
+    --surface-2: #182621;
+    --ink: #E4EFE9;
+    --ink-2: #9DB3A9;
+    --line: #26382F;
+    --line-strong: #4F675B;
+    --accent: #46D9A5;
+    --on-accent: #05241A;
+    --accent-soft: #173A2E;
+    --amber: #F2C46A;
+    --amber-soft: #3A2C0E;
+    --focus: #7DB4FF;
+    --shadow: rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B1411;
+  --surface: #121E1A;
+  --surface-2: #182621;
+  --ink: #E4EFE9;
+  --ink-2: #9DB3A9;
+  --line: #26382F;
+  --line-strong: #4F675B;
+  --accent: #46D9A5;
+  --on-accent: #05241A;
+  --accent-soft: #173A2E;
+  --amber: #F2C46A;
+  --amber-soft: #3A2C0E;
+  --focus: #7DB4FF;
+  --shadow: rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 15px/1.5 var(--font-body);
+  padding-inline: 16px;
+  padding-block: 28px 56px;
+}
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.mono { font-family: var(--font-mono); }
+
+.page { max-width: 640px; margin-inline: auto; display: flex; flex-direction: column; gap: 16px; }
+
+.card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 20px;
+  box-shadow: 0 24px 48px -32px var(--shadow); overflow: hidden;
+}
+
+.head { padding: 24px 24px 8px; display: flex; flex-direction: column; gap: 14px; }
+h1 {
+  margin: 0; font: 700 clamp(26px, 5.4vw, 32px)/1.1 var(--font-display);
+  letter-spacing: -0.02em; text-wrap: balance;
+}
+.lead { margin: 0; color: var(--ink-2); max-width: 52ch; }
+
+.tools { padding: 12px 24px 4px; display: flex; gap: 8px 16px; align-items: center; }
+.search {
+  flex: 1; min-width: 0; position: relative; display: block;
+}
+.search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-2); pointer-events: none; }
+.search input {
+  width: 100%; height: 46px; padding: 0 14px 0 42px; border-radius: 12px;
+  border: 1px solid var(--line-strong); background: var(--surface-2); color: var(--ink);
+}
+.search input::placeholder { color: var(--ink-2); opacity: 1; }
+.search input:focus-visible { outline-offset: 1px; }
+.bulk { display: flex; gap: 4px; flex: none; }
+.link {
+  min-height: 44px; padding: 0 10px; border: 0; background: none;
+  color: var(--accent); font-weight: 600; font-size: 14px; border-radius: 8px;
+}
+.link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.link:disabled { color: var(--ink-2); opacity: 0.6; cursor: not-allowed; text-decoration: none; }
+
+.meta {
+  padding: 8px 24px 10px; display: flex; justify-content: space-between; gap: 12px;
+  font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums;
+}
+.meta b { color: var(--ink); font-weight: 600; }
+
+.scroller-wrap { position: relative; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.scroller {
+  max-height: clamp(260px, 46vh, 420px); overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-color: var(--line-strong) transparent;
+}
+.fade {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 56px; pointer-events: none; opacity: 0;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--surface) 0%, transparent), var(--surface));
+  transition: opacity 0.2s;
+}
+.scroller-wrap.has-more .fade { opacity: 1; }
+
+.row {
+  position: relative; display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 14px;
+  min-height: 52px; padding: 8px 24px; border-bottom: 1px solid var(--line); cursor: pointer;
+}
+.row:last-child { border-bottom: 0; }
+.row:hover { background: var(--surface-2); }
+.row input { position: absolute; left: 24px; top: 50%; width: 22px; height: 22px; margin: -11px 0 0; opacity: 0; cursor: pointer; }
+.box {
+  width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--line-strong); background: var(--surface);
+  display: grid; place-items: center; color: var(--on-accent); transition: background 0.15s, border-color 0.15s;
+}
+.box svg { opacity: 0; transform: scale(0.6); transition: opacity 0.15s, transform 0.15s; }
+.row input:checked + .box { background: var(--accent); border-color: var(--accent); }
+.row input:checked + .box svg { opacity: 1; transform: none; }
+.row input:focus-visible + .box { outline: 3px solid var(--focus); outline-offset: 2px; }
+.name { font-weight: 500; overflow-wrap: anywhere; transition: color 0.15s; }
+.row input:not(:checked) ~ .name { color: var(--ink-2); }
+.name mark { background: var(--accent-soft); color: inherit; border-radius: 3px; padding: 0 1px; }
+.state { font-size: 12.5px; font-weight: 600; }
+.stay { color: var(--accent); }
+.leave { background: var(--amber-soft); color: var(--amber); padding: 2px 9px; border-radius: 999px; }
+.row input:checked ~ .state .leave { display: none; }
+.row input:not(:checked) ~ .state .stay { display: none; }
+
+.empty { margin: 0; padding: 40px 24px; color: var(--ink-2); text-align: left; }
+
+.foot { padding: 16px 24px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.sum { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.sub { margin: 2px 0 0; font-size: 13px; color: var(--ink-2); }
+.sub.warn { color: var(--amber); }
+.btn {
+  min-height: 48px; padding: 0 24px; border-radius: 12px; border: 1px solid var(--accent);
+  background: var(--accent); color: var(--on-accent); font-weight: 600; flex: none;
+}
+.btn:hover:not(:disabled) { filter: brightness(1.08); }
+.btn:disabled { background: var(--surface-2); color: var(--ink-2); border-color: var(--line); cursor: not-allowed; }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+
+.done { padding: 40px 24px 32px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.done-icon { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
+.done h2 { margin: 4px 0 0; font: 700 26px/1.15 var(--font-display); letter-spacing: -0.02em; }
+.done h2:focus { outline: none; }
+.done p { margin: 0; color: var(--ink-2); }
+.done .note { font-size: 12.5px; }
+.done .btn { margin-top: 8px; }
+
+@media (max-width: 520px) {
+  .head, .tools, .meta, .foot { padding-inline: 16px; }
+  .row { padding-inline: 16px; }
+  .row input { left: 16px; }
+  .tools { flex-direction: column; align-items: stretch; gap: 0; }
+  .bulk { justify-content: space-between; }
+  .foot { flex-direction: column; align-items: stretch; }
+  .done { padding-inline: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<main class="page">
+  <section class="card">
+    <div id="form-view">
+      <header class="head">
+        <h1>Preferintele tale de email</h1>
+        <p class="lead">Bifat inseamna ca primesti emailuri din acel segment. Debifeaza ce nu te mai intereseaza si salveaza.</p>
+      </header>
+
+      <form id="prefs" novalidate>
+        <div class="tools">
+          <div class="search">
+            <label for="q" class="sr-only">Cauta un segment</label>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            <input id="q" type="search" placeholder="Cauta in segmentele tale" autocomplete="off">
+          </div>
+          <div class="bulk">
+            <button type="button" class="link" id="all">Bifeaza toate</button>
+            <button type="button" class="link" id="none">Debifeaza toate</button>
+          </div>
+        </div>
+
+        <div class="meta" aria-live="polite">
+          <span id="stay-count"></span>
+          <span id="shown-count"></span>
+        </div>
+
+        <div class="scroller-wrap" id="wrap">
+          <div class="scroller" id="scroller">
+            <div id="list"></div>
+            <p class="empty" id="empty" hidden></p>
+          </div>
+          <div class="fade" aria-hidden="true"></div>
+        </div>
+
+        <div class="foot">
+          <div>
+            <p class="sum" id="sum"></p>
+            <p class="sub" id="sub"></p>
+          </div>
+          <button type="submit" class="btn" id="save">Salveaza preferintele</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="done-view" class="done" hidden>
+      <div class="done-icon" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+      </div>
+      <h2 id="done-title" tabindex="-1">Preferintele au fost salvate</h2>
+      <p id="done-text"></p>
+      <p class="note mono">Mockup: nimic nu s-a trimis nicaieri.</p>
+      <button type="button" class="btn ghost" id="again">Modifica din nou</button>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var BASE = [
+    'Noutati si oferte', 'Evenimente gratuite', 'Teme si formate', 'Reduceri de sezon', 'Lansari de produse', 'Articole noi pe blog',
+    'Invitatii la webinarii', 'Ghiduri si tutoriale', 'Concursuri si premii', 'Oferte de weekend', 'Clienti fideli', 'Rezumat lunar',
+    'Precomenzi', 'Oferte last minute', 'Povesti din comunitate', 'Interviuri si podcasturi', 'Cursuri si ateliere', 'Vouchere cadou',
+    'Evenimente pentru companii', 'Parteneri si colaborari', 'Sfaturi si recomandari', 'Programul lunii', 'Oferte pentru grupuri', 'Editii speciale'
+  ];
+  var TOPICS = ['Concerte', 'Teatru', 'Stand-up', 'Festivaluri', 'Sport', 'Pentru copii', 'Expozitii', 'Conferinte', 'Cursuri', 'Targuri'];
+  var CITIES = ['Bucuresti', 'Cluj-Napoca', 'Iasi', 'Timisoara', 'Brasov', 'Constanta', 'Sibiu', 'Oradea', 'Craiova', 'Pitesti', 'Ploiesti', 'Galati', 'Arad', 'Bacau', 'Targu Mures', 'Baia Mare', 'Suceava'];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var list = $('list'), scroller = $('scroller'), wrap = $('wrap'), empty = $('empty');
+  var state = { items: [], checked: new Set(), q: '' };
+
+  function norm(s) { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+  function esc(s) {
+    return s.replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function plural(n) {
+    if (n === 1) return '1 segment';
+    var m = n % 100;
+    return n + ((m === 0 || m >= 20) ? ' de segmente' : ' segmente');
+  }
+
+  function build(n) {
+    var all = BASE.slice();
+    if (n > BASE.length) {
+      TOPICS.forEach(function (t) { CITIES.forEach(function (c) { all.push(t + ' ' + c); }); });
+    }
+    return all.slice(0, n)
+      .sort(function (a, b) { return a.localeCompare(b, 'ro'); })
+      .map(function (name, i) { return { id: i, name: name }; });
+  }
+
+  function visible() {
+    var q = norm(state.q.trim());
+    return state.items.filter(function (i) { return !q || norm(i.name).indexOf(q) !== -1; });
+  }
+
+  function rowHtml(item, q) {
+    var name = item.name, idx = q ? norm(name).indexOf(q) : -1, html;
+    if (idx >= 0) {
+      html = esc(name.slice(0, idx)) + '<mark>' + esc(name.slice(idx, idx + q.length)) + '</mark>' + esc(name.slice(idx + q.length));
+    } else {
+      html = esc(name);
+    }
+    return '<label class="row"><input type="checkbox" value="' + item.id + '"' + (state.checked.has(item.id) ? ' checked' : '') + '>' +
+      '<span class="box" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>' +
+      '<span class="name">' + html + '</span>' +
+      '<span class="state"><span class="stay">Ramai</span><span class="leave">Iesi</span></span></label>';
+  }
+
+  function updateFade() {
+    var more = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight > 6;
+    wrap.classList.toggle('has-more', more);
+  }
+
+  function updateMeta() {
+    var q = state.q.trim(), shown = visible().length, total = state.items.length;
+    $('stay-count').innerHTML = 'Ramai in <b>' + state.checked.size + '</b> din ' + total;
+    $('shown-count').textContent = q ? 'Se afiseaza ' + shown : '';
+    $('all').textContent = q ? 'Bifeaza cele afisate' : 'Bifeaza toate';
+    $('none').textContent = q ? 'Debifeaza cele afisate' : 'Debifeaza toate';
+    $('all').disabled = $('none').disabled = shown === 0;
+  }
+
+  function updateFooter() {
+    var leaving = state.items.length - state.checked.size, rest = state.checked.size;
+    var sub = $('sub');
+    sub.classList.remove('warn');
+    if (leaving === 0) {
+      $('sum').textContent = 'Nicio modificare';
+      sub.textContent = 'Bifat inseamna ca ramai in segment.';
+    } else {
+      $('sum').textContent = 'Iesi din ' + plural(leaving);
+      if (rest === 0) {
+        sub.textContent = 'Nu vei mai ramane in niciun segment.';
+        sub.classList.add('warn');
+      } else {
+        sub.textContent = 'Ramai in ' + plural(rest) + '.';
+      }
+    }
+    $('save').disabled = leaving === 0;
+  }
+
+  function render() {
+    var vis = visible(), q = norm(state.q.trim());
+    list.innerHTML = vis.map(function (i) { return rowHtml(i, q); }).join('');
+    empty.hidden = vis.length > 0;
+    if (!vis.length) {
+      empty.textContent = state.items.length === 0
+        ? 'Nu mai esti in niciun segment.'
+        : 'Niciun segment nu contine "' + state.q.trim() + '".';
+    }
+    $('q').disabled = state.items.length === 0;
+    scroller.scrollTop = 0;
+    updateMeta();
+    updateFooter();
+    updateFade();
+  }
+
+  function sync() {
+    list.querySelectorAll('input').forEach(function (inp) { inp.checked = state.checked.has(+inp.value); });
+    updateMeta();
+    updateFooter();
+  }
+
+  function load(n) {
+    state.items = build(n);
+    state.checked = new Set(state.items.map(function (i) { return i.id; }));
+    state.q = '';
+    $('q').value = '';
+    $('done-view').hidden = true;
+    $('form-view').hidden = false;
+    render();
+  }
+
+  list.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.type !== 'checkbox') return;
+    var id = +t.value;
+    if (t.checked) state.checked.add(id); else state.checked.delete(id);
+    updateMeta();
+    updateFooter();
+  });
+
+  $('q').addEventListener('input', function (e) { state.q = e.target.value; render(); });
+  $('all').addEventListener('click', function () { visible().forEach(function (i) { state.checked.add(i.id); }); sync(); });
+  $('none').addEventListener('click', function () { visible().forEach(function (i) { state.checked.delete(i.id); }); sync(); });
+  scroller.addEventListener('scroll', updateFade, { passive: true });
+  window.addEventListener('resize', updateFade);
+
+  $('prefs').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var leaving = state.items.length - state.checked.size, rest = state.checked.size;
+    if (leaving === 0) return;
+    $('done-text').textContent = 'Ai iesit din ' + plural(leaving) + '. ' +
+      (rest ? 'Ramai in ' + plural(rest) + '.' : 'Nu mai esti in niciun segment.');
+    $('form-view').hidden = true;
+    $('done-view').hidden = false;
+    $('done-title').focus();
+  });
+
+  $('again').addEventListener('click', function () {
+    state.items = state.items.filter(function (i) { return state.checked.has(i.id); });
+    state.checked = new Set(state.items.map(function (i) { return i.id; }));
+    state.q = '';
+    $('q').value = '';
+    $('done-view').hidden = true;
+    $('form-view').hidden = false;
+    render();
+    if (state.items.length) $('q').focus();
+  });
+
+  load(24);
+})();
+</script>
+</body>
+</html>
